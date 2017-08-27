@@ -12,11 +12,27 @@ setwd("~/Desktop/Coursera/Reproducible Research/week 2/Project/RepData_PeerAsses
 activity <- read.csv("./activity.csv")
 ```
 
+
 ## What is mean total number of steps taken per day?
+First we can plot the total number of steps taken each day.
+By using aggregate function we got a new dataset which contains the date and corresponding total steps.
 ```{r}
-aggmean <- aggregate(steps~date,activity,mean)
-aggmean
+aggsum <- aggregate(steps~date, activity, sum)
 ```
+
+Then use histogram to show the distribution of total steps each day.
+```{r}
+hist(aggsum$steps,main = "Hist of total steps of each day",xlab = "Total steps")
+abline(v = mean(aggsum$steps),col = "magenta",lwd = 2)
+abline(v = median(aggsum$steps), col = "blue",lwd = 2)
+```
+
+Mean and median of the total number of steps taken per day
+```{r}
+mean(aggsum$steps)
+median(aggsum$steps)
+```
+
 
 ## What is the average daily activity pattern?
 ```{r}
@@ -24,13 +40,39 @@ aggintervalsteps <- aggregate(steps~interval,activity,mean)
 with(aggintervalsteps, plot(interval,steps,type = "l",xlab = "Interval", ylab = "Average steps"))
 ```
 
+The 5_interval on average contains the maximum number of steps
+```{r}
+maxinter <- aggintervalsteps[aggintervalsteps$steps == max(aggintervalsteps$steps),"interval"]
+maxinter
+```
+
 
 ## Imputing missing values
+Calculate and report the total number of missing values in dataset.
+```{r}
+sum(!complete.cases(activity))
+```
+
+Filling in all the NA values and create a new dataset.
 ```{r}
 library(plyr)
 impute.mean <- function(x) replace(x,is.na(x),mean(x,na.rm = TRUE))
 activityNew <- ddply(activity,~interval,transform,steps = impute.mean(steps))
 activityNew <- activityNew[order(activityNew$date),]
+```
+
+Histogram of the total number of steps taken each day.
+```{r}
+aggsumnew <- aggregate(steps~date,activityNew,sum)
+hist(aggsumnew$steps,main = "Hist of total steps of each day(with no NA)",xlab = "Total steps")
+abline(v = mean(aggsumnew$steps),col = "magenta",lwd = 2)
+abline(v = median(aggsumnew$steps), col = "blue",lwd = 2)
+```
+
+Mean and median of the total number of steps taken per day
+```{r}
+mean(aggsumnew$steps)
+median(aggsumnew$steps)
 ```
 
 
