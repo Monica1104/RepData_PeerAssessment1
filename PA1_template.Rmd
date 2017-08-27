@@ -7,19 +7,42 @@ output:
 
 
 ## Loading and preprocessing the data
-
-
+```{r}
+setwd("~/Desktop/Coursera/Reproducible Research/week 2/Project/RepData_PeerAssessment1/")
+activity <- read.csv("./activity.csv")
+```
 
 ## What is mean total number of steps taken per day?
-
-
+```{r}
+aggmean <- aggregate(steps~date,activity,mean)
+aggmean
+```
 
 ## What is the average daily activity pattern?
-
+```{r}
+aggintervalsteps <- aggregate(steps~interval,activity,mean)
+with(aggintervalsteps, plot(interval,steps,type = "l",xlab = "Interval", ylab = "Average steps"))
+```
 
 
 ## Imputing missing values
-
+```{r}
+library(plyr)
+impute.mean <- function(x) replace(x,is.na(x),mean(x,na.rm = TRUE))
+activityNew <- ddply(activity,~interval,transform,steps = impute.mean(steps))
+activityNew <- activityNew[order(activityNew$date),]
+```
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r}
+activityNew$date <- as.Date(activityNew$date)
+activityNew$week <- weekdays(activityNew$date)
+activityNew[(activityNew$week == 'Saturday'|activityNew$week == 'Sunday'),]$week <- 'weekend'
+activityNew[(activityNew$week == 'Monday'|activityNew$week == 'Tuesday'|activityNew$week == 'Thursday'|activityNew$week == 'Wednesday'|activityNew$week == 'Friday'),]$week <- 'weekday'
+activityNew$week <- factor(activityNew$week)
+
+aggintervalsteps1 <- aggregate(steps~interval+week,activityNew,mean)
+library(lattice)
+xyplot(steps~interval|week,data = aggintervalsteps1,type = 'l',layout = c(1,2),xlab = "Interval",ylab = "Number of steps")
+```
